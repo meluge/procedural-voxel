@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>halfmoon/halfmoon.obj</file>
+        <file>halfmoon/cube.obj</file>
+    </qresource>
+</RCC>

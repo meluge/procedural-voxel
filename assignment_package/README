@@ -1,0 +1,127 @@
+- This version only guarantees supports for macOS, since every member in our team is using a macbook
+- Terrain is currently hollow to improve performance; bedrock layer and caves are not being generated (refer to milestone 2 if needed)
+
+
+Procedural Terrain - Sophia Szczepek
+
+I used Perlin noise and two different FBM functions to generate a flatter grass terrain and a tall jagged mountain terrain.
+Then I used another noise function to determine areas of the different terrain and use glm::smoothstep to have a transition
+area where the terrains change. I used the examples from lecture to make my two height functions. One issue was getting the
+terrain to look how I wanted them, so I experimented with different values in each one to create the desired terrain look.
+So I decided to make two different FBM functions with different values which are creating the main difference between the
+two biomes.
+
+
+Player Physics - Nico Kong
+
+While implementing player physics, we first calculated the direction the player is moving in (based on the input) and only
+then normalised it and applied the amount. Mouse movement is slightly buffered in the player object so it looks more smooth
+and continuous. The most challenging part of the other features is ray-collision detections with the terrain, which we implemented
+with grid marching and returns a custom Collision struct, which is used in most other features - breakblock, placeblock and movement.
+for movement, we do ray-collision detection for each axis individually; if a collision occurs, we reduce the distance of
+movement in that direction to the distance to the collision. finally, I use a onGround variable and jump cooldown
+variable to implement more natural jumping mechanics.
+
+
+Chunking - One An
+
+As suggested in lecture, I first created a struct that allows easy access to the blocks nearby the given block.
+Then, using the struct, I implemented createvbo and buffervbo which uses a single interweaved vbo of position, normal, and color.
+It does this by checking for each block whether it has a neighbor and it only renders when it doesn't have an empty neighbor
+(meaning that it is an edge block). Then, when we send this vbo to openGL, we parse out the data using the glVertexAttribPointer
+function. And I also implemented creating new chunks within two chunk radius of the player. And we call this check in every tick
+so that it can render properly as the player moves around. And we create and buffer new vbo data everytime it's needed (like
+when a block is destroyed or created).
+
+
+Texture and Animation - Nico Kong
+
+When setting up UV's VBO data, I decided to still pass them into the shader programs using a vec4 instead of a vec2 for two reasons:
+- this way i can store data about animation in the 2 unused values; z for if it's animated (0 for still, non 0 for animated) and w for animation speed (miliseconds/frame)
+- keeping data aligned might improve the performance (position and normal are already vec4s)
+Animations are currently hardcoded to be offsetted by the shape in the texture file (always 5 states)
+The rest of the assignment was mostly done using the methods mentioned in class and other assignments.
+
+
+Multi Threading - One An
+I created 8 threads for VBOworker and 8 threads for BlockTypeWorker with them constantly running in the background. Then, I made
+a vector of the chunks that need to be worked on, in which all of the threads had access to it. Then, using lock_guard (which I
+used instead of normal lock because it unlocks automatically), I made such that multiple threads cannot work on the a singular
+chunk at the same time. I also made the vbodata be processed for the transparent and solid blocks.
+Additionally, I added extra enums for buffertype so it can handle those different blocks and make a draw
+call twice.
+
+Cave generating - Sophia Szczepek
+
+I implemented eve generating by using a 3d perlin noise function and following the specific direction in the assignment.
+I created the post processing pipeline with the quad class and using frame buffer and by updating MyGL. I also updated the player class.
+**Note -- I had an issue where the frame buffer was causing the window to be resized incorrectly - I fixed this by changing the resize calls
+in MyGL so that the last argument is 1 instead of devicePixelRatio. After changing these lines the post processing worked as expected.
+
+Nico Kong - Biomes, Vegetation, Block Models, Structure
+- Spline based height map system, and added 9 biomes using the humidity-temperature method;
+- Biome Height Blending
+- Support for custom block models (cactus, flowers etc)
+- Support for generating premade assets across chunks
+Biomes Include:
+Plains, Forest with vegetation and trees
+Rivers with Noise based rivers and mushrooms
+Rainforest with melons, jungle trees and rainy weather
+Deserts with Cacti, dead bushes and Pyramids
+Snowy Hills with snowy mountains and snowy weather
+3 Oceans, where cold Oceans have Icebergs, warm Oceans have corals and Normal Ocean can generate sailboats.
+
+
+One An - Weather, Day/Night Cycle, Sphere effect, Motion Blur
+-Weather: There's 3 main weather features. The first is tornado. This hard coded to a specific location, but it moves around.
+Professor Mally wrote me an obj file, which I'm rendering at multiple different heights and using vertex shader to rotate it.
+The rain and snow are specific to biomes; they are written such that they only show up when you're on the specific biome:
+rain in rainforest and snow in snowy mountain region. If you would like to always see it for grading purposes, you can set
+the isRaining and isSnowing conditions to be always true in tick. Both of them are generated first by creating a vbo data, assigning
+a ID to the specific rain/snow particle and then moving them in the vertex shader.
+-Day/Night cycle: I wrote the day/night cycle based off of the lecture that Professor Mally did. I attempted to use volumetric noise
+to generate clouds, but it was so computationally heavy that I just stuck with worley (which I also turned off for now but
+it's in sky.frag to change it. I compute the sun direction movement every tick and pass it to both the lambert shader and the
+skybox shader to handle the sun's actual movement (along with blending the colors of the sky) and the sun direction for the
+lambert shading.
+-Sphere effect: Clicking the key "p" activates spherical distortion. This happens in the lambert shader by essentially distorting the
+vertex the further away you are from the "center" of the earth (calculated below the player).
+-Motion Blur: Clickign the key "m" activates motion blur. This is achieved by saving previous 5 frames to the frame buffer and
+interpolating between them. It cycles through each of the slot for efficiency.
+
+Sophia Szczepek - Inventory, Crafting, Underwater effect
+Inventory/Crafting: Implemented the following features:
+- Press I to open or close inventory.
+- User can only place blocks when there are blocks in inventory and a block is selected.
+- Use left and right arrow keys to select a block - The currently selected block will be highlighted.
+- When a block is selected, press C to add one quantity of that block to the crafting inventory.
+- You can add up to 8 blocks to the crafting inventory.
+If the user tries to add another block to the crafting inventory when it is full, then nothing will change.
+- If the blocks in the crafting inventory match a defined recipe, then the crafting inventory will disappear
+and the recipe result will appear in the output slot.
+- Press 0 to move the item from the output slot into the main inventory.
+- Press 1 to move all blocks from the crafting inventory back to the main inventory.
+- Note that if the selection is not appearing after adding or removing blocks from crafting inventory, try pressing
+the right arrow a few times or the left arrow a few times and it should appear.
+- 13 crafting recipes are defined in MyGL.
+
+This was implemnted by creating rectangle and cube drawable classes. The InventoryRectangle class is what is used to draw the empty
+inventory grid and crafting slots. Specific colors are set in the Inventory fragment shader. Then each block in the inventory
+is an instance of an InventoryCube which gets mapped to textures of the block type.
+
+The inventory data structure is stored in the Player class, and is a map of an int, which represents the slot number,
+and a pair of an int and a block type which represents the block and the amount of that block in the slot.
+The inventory grid and crafting grid are separate data structures which are of this form. There are several functions
+in the Player class which are used to add blocks, remove blocks, decrement count of a block,
+and various other operations used to implement the inventory. The main implementation is in the key press event function.
+The fragment shader also handles highlighting the selected block and does the shading of the blocks in the inventory.
+
+At first I wanted to implement the inventory/crafting with clicking and dragging blocks, but I decided to do
+key presses instead because the mouse clicking code I wrote was too complicated and it was hard to map the
+mouse click onto the correct slot.
+
+- Added noise function to post process fragment shader for an underwater wavy effect.
+
+- Note that I implemented caves for Milestone 2 with the height of 128 required by the assignment, but we had to
+lower the height to work better with the terrain we did in Milestone 3. Please look at Milestone 2 for the
+original cave implementation that follows the assignment guidelines.

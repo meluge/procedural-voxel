@@ -1,0 +1,27 @@
+Milestone 1 Help Log 11/11/24
+
+Sophia Szczepek - Procedural Terrain Milestone 1
+I used lecture slides and example code from class to make the two height functions. I also used lecture slide from noise function lecture
+and I used some of my noise function from HW5. Other than that I did not use any other help.
+
+One An - Chunking
+TA Aaron Tian helped me debugging using render doc. And TA Christine Kneer helped me with debugging the logic of createvbo.
+
+Sofia Szczepek - Cave & post processing Milestone 2
+Did not use any help besides lecture slides and old homework assignments
+
+One An - Multi Threading
+TA initially helped me create a structure where a new thread is created for each chunk, but Professor Mally
+suggested a different way of having fixed number of threads constantly running.
+
+Nico Kong - Textures
+Classmate Cedric gave me advice on rendering water.
+
+One An - milestone 3
+Asked Professor Mally help on how to go about making a tornado. He suggested multiple different methods and even gave me
+a obj file to render for it. He also helped me with the issue of the raindrop stretching when one vertex of the raindrop
+was at the bottom and the other was on the top.
+
+Sophia Szczepek - Milestone 3
+Went to office hours and got help from Prof. Mally to implement the Inventory Rectangle class.
+Used C++ and GLSL document references and used Google Images of Minecraft inventories for reference on the design.
